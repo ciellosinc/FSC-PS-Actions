@@ -673,7 +673,34 @@ function GenerateSolution {
         GenerateProjectFile -ModelName $project.Name -ProjectGuid $project.Value -MetadataPath $MetadataPath 
     }
 
+    $parameters = @{
+        DynamicsVersion = $DynamicsVersion
+        NugetFeedName = $NugetFeedName
+        NugetSourcePath = $NugetSourcePath
+        NugetFolderPath = $NugetFolderPath
+    }
+    GeneratePackagesConfig @parameters
+}
+
+function GeneratePackagesConfig
+{
+    [CmdletBinding()]
+    param (
+        [string]$DynamicsVersion,
+        [string]$NugetFeedName = '',
+        [string]$NugetSourcePath = '',
+        [string]$NugetFolderPath = ''
+    )
+
+    if (-not $NugetFolderPath) {
+        $NugetFolderPath =  Join-Path $PSScriptRoot 'NewBuild'
+    }
+    if (-not (Test-Path -Path $NugetFolderPath)) {
+        New-Item -ItemType Directory -Path $NugetFolderPath
+    }
+
     Set-Location $PSScriptRoot\Build
+
     #generate nuget.config
     $NugetConfigFileName = 'nuget.config'
     $NewNugetFile = Join-Path $NugetFolderPath $NugetConfigFileName
@@ -685,7 +712,6 @@ function GenerateSolution {
         $tempFile = (Get-Content $NugetConfigFileName).Replace('<add key="NugetFeedName" value="NugetSourcePath" />', '')
     }
     Set-Content $NewNugetFile $tempFile
-
 
     Foreach($version in Get-Versions)
     {
@@ -704,6 +730,7 @@ function GenerateSolution {
 
     Set-Location $PSScriptRoot
 }
+
 function Update-RetailSDK
 {
     [CmdletBinding()]
